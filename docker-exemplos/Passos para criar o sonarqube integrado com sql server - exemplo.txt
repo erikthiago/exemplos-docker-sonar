@@ -1,0 +1,49 @@
+Primeiro cria a rede: 
+docker network create rede_sonar
+
+Segundo cria os volumes: 
+docker volume rm sonarqube_extensions
+docker volume rm sonarqube_logs
+docker volume rm sonarqube_data
+
+Terceiro sobe o container do sql server na rede criada:
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=<suaSenha>" -p 1433:1433 -d --network rede_sonar --name SqlServer mcr.microsoft.com/mssql/server 
+
+Quarto cria o banco:
+Para acessar o servidor do sql server criado, vá no SQL Server Managent Studio e acesse com as credenciais:
+servidor: localhost
+usuário: sa
+senha:<suaSenha>
+
+Ai rode na sequência, os comandos:
+1º create database sonar collate SQL_Latin1_General_CP1_CS_AS
+2º ALTER DATABASE sonar SET READ_COMMITTED_SNAPSHOT ON WITH ROLLBACK IMMEDIATE;
+3º SELECT is_read_committed_snapshot_on FROM sys.databases WHERE name='sonar';
+4º create schema SonarSchema
+5º create login sonarUser WITH PASSWORD = '<suaSenha>'
+6º create user sonarUser for login sonarUser
+7º grant control on SCHEMA::SonarSchama TO sonarUser
+8º alter user sonarUser with default_schema = SonarSchema 
+9º grant control on DATABASE::sonar to sonarUser
+
+Quinto setar as configurações de memoria do docker para usar no wsdl(ubunto)(fazer isso no ubunto):
+// 1º sudo sysctl -w vm.max_map_count=524288
+1º sudo sysctl -w vm.max_map_count=131072
+2º sudo sysctl -w fs.file-max=131072
+
+Sexto rodar o container do sonar qube apontando ele pra rede criada e pro banco criado:
+docker run -d --name sonarqube -p 9001:9000 -e "SONAR_JDBC_URL=jdbc:sqlserver://SqlServer(*Nome do container*);databaseName=sonar" -e "SONAR_JDBC_USERNAME=sonarUser" -e "SONAR_JDBC_PASSWORD=<suaSenha>" -v sonarqube_data:/opt/sonarqube/data -v sonarqube_extensions:/opt/sonarqube/extensions -v sonarqube_logs:/opt/sonarqube/logs --network rede_sonar sonarqube
+
+Chamar no navegador a rota:
+localhost:9001
+
+Primeiro acesso, as credenciais são:
+usr: admin
+senha: admin
+
+O Sonar pede pra mudar a senha. Então coloque:
+<suaSenha>
+
+Links de referencia:
+https://hub.docker.com/_/microsoft-mssql-server
+https://hub.docker.com/_/sonarqube

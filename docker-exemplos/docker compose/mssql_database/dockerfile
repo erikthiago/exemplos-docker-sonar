@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/mssql/server
+
+COPY setup.sql setup.sql
+COPY setup_database.sh setup_database.sh
+COPY entrypoint.sh entrypoint.sh
+ENV ACCEPT_EULA=Y
+ENV MSSQL_SA_PASSWORD=<suaSenha>
+
+# CMD /bin/bash ./entrypoint.sh
+RUN ./opt/mssql/bin/sqlservr & ./setup_database.sh

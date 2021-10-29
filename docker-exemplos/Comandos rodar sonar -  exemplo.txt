@@ -1,0 +1,49 @@
+Rodar o sonar para verificar o código
+dotnet sonarscanner begin /k:"<SuaProjectKey>" /d:sonar.login="<SeuToken>"
+dotnet restore
+dotnet build
+dotnet sonarscanner end /d:sonar.login="<SeuToken>"
+
+Rodar sonar para importar code coverage
+** Links sonar de referencia: 
+https://docs.sonarqube.org/latest/analysis/coverage/
+https://community.sonarsource.com/t/coverage-test-data-generate-reports-for-c-vb-net/9871
+
+** Link de referencia: https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-code-coverage?tabs=windows#generate-reports
+** Esse comando verifica projeto por projeto e gera os arquivos xml e trx separados em cada projeto
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --logger=trx
+
+** Link de referencia: https://stackoverflow.com/a/66727725
+** Estes comandos agrupam os resultados de cobertura de código, os arquivos xml
+dotnet test <SeuProjetoDeTeste>.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=json /p:CoverletOutput=<CaminhoOndeOArquivoVaiFicar>\cover.json --logger=trx
+dotnet test <SeuOutroProjetoDeTeste>.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=<CaminhoOndeOArquivoVaiFicar>\coverage.opencover.xml /p:MergeWith=<CaminhoOndeFoiGeradoAnteriormente>\cover.json --logger=trx
+
+** Link de referencia: https://docs.microsoft.com/pt-br/dotnet/core/tools/dotnet-test
+** Este comando renomeia o arquivo trx (ou dentro da pasta padrão TestResults quando não especifica a pasta ou na pasta definida no argumento --results-directory) e agrupam os resultados de cobertura de código, os arquivos xml
+dotnet test <SeuProjetoDeTeste>.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=json /p:CoverletOutput=<CaminhoOndeOArquivoVaiFicar>\cover.json --logger="trx;LogFileName=result.trx" --results-directory=<PastaQueVaiReceberOArquivo>
+dotnet test <SeuOutroProjetoDeTeste>.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=<CaminhoOndeOArquivoVaiFicar>\coverage.opencover.xml /p:MergeWith=<CaminhoOndeFoiGeradoAnteriormente>\cover.json --logger="trx;LogFileName=result1.trx" --results-directory=<PastaQueVaiReceberOArquivo>
+
+** Link de referencia: https://medium.com/agilix/collecting-test-coverage-using-coverlet-and-sonarqube-for-a-net-core-project-ef4a507d4b28
+** Esse comando pega somente o code coverage, especificando um projeto
+dotnet sonarscanner begin /k:"BiddingAssistance" /d:sonar.host.url=http://localhost:9000 /d:sonar.cs.opencover.reportsPaths="<PastaOndeOArquivoEsta>\coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests*.cs" /d:sonar.login="<SeuToken>"
+
+** Esse comando pega o code coverage dos dois projetos
+dotnet sonarscanner begin /k:"<SeuProjectKey>" /d:sonar.host.url=http://localhost:9000 /d:sonar.cs.opencover.reportsPaths="<PastaOndeOArquivoEsta>\coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests*.cs" /d:sonar.login="<SeuToken>"
+
+** Esse comando pega o code coverage e a quantidade de testes unitarios, especificando um projeto
+dotnet sonarscanner begin /k:"<SeuProjectKey>" /d:sonar.host.url=http://localhost:9000 /d:sonar.cs.vstest.reportsPaths="<PastaOndeOArquivoesta>\<NomeDoArquivo>.trx" /d:sonar.cs.opencover.reportsPaths="<PastaOndeOArquivoEsta>\coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests*.cs" /d:sonar.login="<SeuToken>"
+
+** Esse comando pega o code coverage e a quantidade de testes unitarios dos dois projetos combinnados
+dotnet sonarscanner begin /k:"<SeuProjectKey>" /d:sonar.host.url=http://localhost:9000 /d:sonar.cs.vstest.reportsPaths="<PastaOndeOArquivoEsta>\combine.trx" /d:sonar.cs.opencover.reportsPaths="<PastaOndeOArquivoEsta>\coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests*.cs" /d:sonar.login="<SeuToken>"
+
+dotnet restore
+dotnet build
+dotnet sonarscanner end /d:sonar.login="<SeuToken>"
+
+** Links de referencia:
+https://github.com/rndsolutions/trx-merger
+https://stackoverflow.com/questions/1673967/how-to-run-an-exe-file-in-powershell-with-parameters-with-spaces-and-quotes
+https://stackoverflow.com/questions/39711481/combine-many-mstest-trx-files-into-one
+
+** Para combinar os dois arquivos trx usei o comando, que rodei dentro da pasta C:\dev\trx-merger-master\TRX_Merger\bin\Debug:
+<PastaOndeEstaOCloneDoProjeto>\trx-merger-master\TRX_Merger\bin\Debug\TRX_Merger.exe /trx:<PastaOndeEstaOArquivo>result.trx,<PastaOndeOarquivoEsta>\result1.trx /output:<PastaOndeoArquivoDeveEstar>\combine.trx

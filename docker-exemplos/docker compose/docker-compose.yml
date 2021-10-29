@@ -1,0 +1,51 @@
+version: "2"
+
+networks:
+  rede_sonar:
+    driver: bridge
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server
+    container_name: sqlServer
+    networks:
+      - rede_sonar
+    build: ./mssql_database
+    environment:
+      SA_PASSWORD: <suaSenha>
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    volumes: 
+      - sqldata:/var/opt/sqlserver/data
+      - sqllog:/var/opt/sqlserver/log
+      - database-data:/var/opt/mssql
+      
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
+    depends_on:
+      - db
+    ports:
+      - "9000:9000"
+    networks:
+      - rede_sonar
+    environment:
+      SONAR_JDBC_URL: jdbc:sqlserver://SqlServer;databaseName=<nomeSeuBanco>
+      SONAR_JDBC_USERNAME: sonarUser
+      SONAR_JDBC_PASSWORD: <suaSenha>
+      DatabaseName: sonar
+      DbUser: "SA"
+      Password: "<suaSenha>"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sqldata:
+  sqllog:
+  database-data:
