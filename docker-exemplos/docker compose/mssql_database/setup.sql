@@ -15,7 +15,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SonarSchema')
 
 IF NOT EXISTS (SELECT name FROM master.sys.server_principals WHERE name = 'sonarUser')
   BEGIN
-    CREATE LOGIN sonarUser WITH PASSWORD = N'<suaSenha>6'
+    CREATE LOGIN sonarUser WITH PASSWORD = N'<suaSenha>'
   END
 
 CREATE USER sonarUser FOR LOGIN sonarUser;
